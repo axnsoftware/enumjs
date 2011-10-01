@@ -1,0 +1,51 @@
+
+enumjs
+
+
+SUMMARY
+
+enumjs is a module for use with node.
+
+Its singular export, Enum, is both a base class and a factory for you to create
+custom enums with.
+
+For now, custom enums do not support anything beyond declaring literal constants.
+
+However, these constants are both instances of and subclasses of the enum class 
+that will be created by a call to Enum.create().
+
+Subsequently, these constants can be used in comparisons, switch statements,
+and also with the instanceof operator.
+
+
+
+USAGE
+
+
+
+var Enum = require("enum");
+var assert = require("assert");
+
+var EMyEnum = Enum.create( { LIT1 : {}, LIT2 : {} } );
+
+
+var v = EMyEnum.LIT1;
+
+switch(v) {
+
+	case EMyEnum.LIT1: {
+		console.log("matched LIT1");
+		break;
+	}
+
+	case EMyEnum.LIT2: {
+		console.log("matched LIT2");
+		break;
+	}
+
+	default: {
+		throw new Error("no match");
+	}
+}
+
+

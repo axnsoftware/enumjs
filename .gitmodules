@@ -1,9 +1,9 @@
-[submodule "node_modules/eyes.js"]
-	path = node_modules/eyes.js
-	url = git://github.com/cloudhead/eyes.js.git
 [submodule "node_modules/jsmockito"]
 	path = node_modules/jsmockito
 	url = git://github.com/chrisleishman/jsmockito.git
 [submodule "node_modules/vows"]
 	path = node_modules/vows
 	url = git://github.com/cloudhead/vows.git
+[submodule "node_modules/eyes"]
+	path = node_modules/eyes
+	url = git://github.com/cloudhead/eyes.js.git
