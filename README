@@ -24,9 +24,19 @@ USAGE
 
 
 var Enum = require("enum");
-var assert = require("assert");
 
+// simple notation (LIT1 .. LIT2 will be assigned the ordinals 1..2)
+var EMyEnum = Enum.create( { LIT1 : 0, LIT2 : 0 } );
+// simple notation (LIT1 .. LIT2 will be assigned the ordinals 3..4)
+var EMyEnum = Enum.create( { LIT1 : 3, LIT2 : 0 } );
+// simple notation (LIT1 .. LIT2 will be assigned the ordinals 3,19)
+var EMyEnum = Enum.create( { LIT1 : 3, LIT2 : 19 } );
+
+// object notation (empty for defaults)
 var EMyEnum = Enum.create( { LIT1 : {}, LIT2 : {} } );
+
+// object notation (LIT1 .. LIT2 will be assigned the ordinals 10,49)
+var EMyEnum = Enum.create( { LIT1 : { ordinal: 10 }, LIT2 : { ordinal: 49 } } );
 
 
 var v = EMyEnum.LIT1;
@@ -47,5 +57,4 @@ switch(v) {
 		throw new Error("no match");
 	}
 }
-
 

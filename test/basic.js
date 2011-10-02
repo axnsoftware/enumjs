@@ -17,11 +17,6 @@
 var vows = require("vows");
 var assert = require("assert");
 
-
-var Enum = require("../lib/enumjs.js").Enum;
-
-var Et = Enum.create( { A : {}, B : {}, C : {} } );
-
 vows.describe('Basic Tests').addBatch({
 	'When require()d': {
 		topic: function() { return require('../lib/enumjs.js'); },
@@ -41,27 +36,103 @@ vows.describe('Basic Tests').addBatch({
 			assert.isFunction(topic.Enum.create);
 		}
 	},
-	'When Enum.create() is not called properly': {
-		topic: function() {
-			var Enum = require('../lib/enumjs.js').Enum;
-			return Enum.create( { A : {}, B : {}, C : {} } );
+	'Enum.create() must fail': {
+		topic: function() { return require('../lib/enumjs.js').Enum; },
+		'with a TypeError on an empty arguments list' : function(topic) {
+			assert.throws(function() { topic.create(); }, TypeError);
 		},
-		'The enum class cannot be instantiated' : function(topic) {
-			assert.throws(function() { topic(); }, TypeError);
+		'with a TypeError on an empty declaration' : function(topic) {
+			assert.throws(function() { topic.create({}); }, TypeError);
 		},
-		'The ordinals are all in sequence' : function(topic) {
-		}
+		'with a TypeError on an invalid declaration' : function(topic) {
+			assert.throws(function() { topic.create("invalid"); }, TypeError);
+			assert.throws(function() { topic.create(["invalid"]); }, TypeError);
+			assert.throws(function() { topic.create({ CONST1 : "invalid" }); }, TypeError);
+		},
+		'with a TypeError on duplicate ordinals' : function(topic) {
+			assert.throws(function() { topic.create({ CONST1 : 5, CONST2 : 4, CONST3 : 0 }); }, TypeError);
+			assert.throws(function() { topic.create({ CONST1 : 1, CONST2 : 2, CONST3 : 1 }); }, TypeError);
+			assert.throws(function() { topic.create({ CONST1 : 1, CONST2 : 1 }); }, TypeError);
+			assert.throws(function() { topic.create({ CONST1 : { ordinal : 1 }, CONST2 : 2, 
+				CONST3 : { ordinal : 1 } }); }, TypeError);
+			assert.throws(function() { topic.create({ CONST1 : { ordinal : 2 }, CONST2 : 1, 
+				CONST3 : { ordinal : 0 } }); }, TypeError);
+		},
+		'with a TypeError on invalid constant literals' : function(topic) {
+			assert.throws(function() { topic.create({ "CON ST1" : 0 }); }, TypeError);
+			assert.throws(function() { topic.create({ "53CONST1" : 0 }); }, TypeError);
+		},
 	},		
-	'When a simple enum is Enum.create()d properly': {
+	'When an enum is create()d properly using only integers': {
 		topic: function() {
 			var Enum = require('../lib/enumjs.js').Enum;
-			return Enum.create( { A : {}, B : {}, C : {} } );
+			return Enum.create( { A : 1, B : 0, C : 0 } );
 		},
 		'The enum class cannot be instantiated' : function(topic) {
 			assert.throws(function() { topic(); }, TypeError);
 		},
+		'The minimum ordinal is one (1)' : function(topic) {
+			assert.isTrue(topic.A.ordinal() == 1);
+		},
 		'The ordinals are all in sequence' : function(topic) {
-			
-		}
-	}}).export(module);
+			assert.isTrue(
+				topic.A.ordinal() == 1
+				&& topic.B.ordinal() == 2
+				&& topic.C.ordinal() == 3
+                  	); 
+		},
+	},
+	'When an enum is create()d properly using object notation only': {
+		topic: function() {
+			var Enum = require('../lib/enumjs.js').Enum;
+			return Enum.create( { A : 0, B : 0, C : 0 } );
+		},
+		'The enum class cannot be instantiated' : function(topic) {
+			assert.throws(function() { topic(); }, TypeError);
+		},
+		'The minimum ordinal is one (1)' : function(topic) {
+			assert.isTrue(topic.A.ordinal() == 1);
+		},
+		'The ordinals are all in sequence' : function(topic) {
+			assert.isTrue(
+				topic.A.ordinal() == 1
+				&& topic.B.ordinal() == 2
+				&& topic.C.ordinal() == 3
+                  	); 
+		},
+	},
+	'When an enum is create()d properly mixing object notation and integers': {
+		topic: function() {
+			var Enum = require('../lib/enumjs.js').Enum;
+			return Enum.create( { A : 0, B : { ordinal : 2 }, C : 0 } );
+		},
+		'The minimum ordinal is one (1)' : function(topic) {
+			assert.isTrue(topic.A.ordinal() == 1);
+		},
+		'The ordinals are all in sequence' : function(topic) {
+			assert.isTrue(
+				topic.A.ordinal() == 1
+				&& topic.B.ordinal() == 2
+				&& topic.C.ordinal() == 3
+                  	); 
+		},
+	},
+	'When an enum is create()d properly with custom ordinals': {
+		topic: function() {
+			var Enum = require('../lib/enumjs.js').Enum;
+			return Enum.create( { A : 100, B : { ordinal : 49 }, C : 0 } );
+		},
+		'The minimum ordinal is one (100)' : function(topic) {
+			assert.isTrue(topic.B.ordinal() == 49
+				&& topic.A.ordinal() > topic.B.ordinal()
+				&& topic.C.ordinal() > topic.B.ordinal());
+		},
+		'There is a gap of 50 between the ordinals of A and C, with B and C being in sequence' : function(topic) {
+			assert.isTrue(
+				(topic.A.ordinal() - topic.C.ordinal() == 50)
+				&& (topic.C.ordinal() - topic.B.ordinal()) == 1
+                  	); 
+		},
+	},
+}).export(module);
 
