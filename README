@@ -11,8 +11,8 @@ custom enums with.
 
 For now, custom enums do not support anything beyond declaring literal constants.
 
-However, these constants are both instances of and subclasses of the enum class 
-that will be created by a call to Enum.create().
+However, these constants are instances of the enum class that will be created 
+by a call to Enum.create().
 
 Subsequently, these constants can be used in comparisons, switch statements,
 and also with the instanceof operator.

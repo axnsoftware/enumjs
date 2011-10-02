@@ -71,6 +71,28 @@ vows.describe('Basic Tests').addBatch({
 		'The enum class cannot be instantiated' : function(topic) {
 			assert.throws(function() { topic(); }, TypeError);
 		},
+		'values() must not be an instance method' : function(topic) {
+			assert.isUndefined(topic.A.values);
+			assert.typeOf(topic.values, 'function');
+		},
+		'instance method valueOf() must return correct enum constant' : function(topic) {
+			assert.doesNotThrow(function() { topic.A.valueOf(); }, TypeError);
+			assert.doesNotThrow(function() { topic.A.valueOf('0'); }, TypeError);
+			assert.doesNotThrow(function() { topic.A.valueOf('Z'); }, TypeError);
+			assert.equal(topic.A.valueOf(), topic.A.ordinal());
+			assert.equal(topic.A.valueOf('0'), topic.A.ordinal());
+			assert.equal(topic.A.valueOf('Z'), topic.A.ordinal());
+		},
+		'class method valueOf() must throw TypeError on undefined, unknown ordinal or unknown constant literal' : function(topic) {
+			assert.throws(function() { topic.valueOf(); }, TypeError);
+			assert.throws(function() { topic.valueOf(0); }, TypeError);
+			assert.throws(function() { topic.valueOf('Z'); }, TypeError);
+		},
+		'valueOf() must comply to the official protocol' : function(topic) {
+			assert.doesNotThrow(function() { topic.A.valueOf(); }, TypeError);
+			assert.isNumber(topic.A.valueOf());
+			assert.equal(1, topic.A.valueOf());
+		},
 		'The minimum ordinal is one (1)' : function(topic) {
 			assert.isTrue(topic.A.ordinal() == 1);
 		},
@@ -85,7 +107,7 @@ vows.describe('Basic Tests').addBatch({
 	'When an enum is create()d properly using object notation only': {
 		topic: function() {
 			var Enum = require('../lib/enumjs.js').Enum;
-			return Enum.create( { A : 0, B : 0, C : 0 } );
+			return Enum.create( { A : { ordinal : 0 }, B : { ordinal : 0 }, C : {} } );
 		},
 		'The enum class cannot be instantiated' : function(topic) {
 			assert.throws(function() { topic(); }, TypeError);
