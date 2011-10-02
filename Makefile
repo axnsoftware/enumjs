@@ -90,13 +90,13 @@ install: all
 	@:>install.log
 	@( \
 		echo "Installing..."; \
-		install -d -m 655 $(INSTALL_ROOT) \
-		&& install -d -m 655 $(INSTALL_ROOT)/enumjs \
-		&& install -d -m 655 $(INSTALL_ROOT)/enumjs/lib \
-		&& install -m 644 -t $(INSTALL_ROOT)/enumjs/ package.json \
-		&& install -m 644 -t $(INSTALL_ROOT)/enumjs/ README \
-		&& install -m 644 -t $(INSTALL_ROOT)/enumjs/ LICENSE \
-		&& install -m 644 -t $(INSTALL_ROOT)/enumjs/lib/ build/lib/enumjs.js \
+		install -v -d -m 655 $(INSTALL_ROOT) \
+		&& install -v -d -m 655 $(INSTALL_ROOT)/enumjs \
+		&& install -v -d -m 655 $(INSTALL_ROOT)/enumjs/lib \
+		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/ package.json \
+		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/ README \
+		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/ LICENSE \
+		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/lib/ build/lib/enumjs.js \
 	) 2>>install.log >>install.log \
 	|| ( \
 		echo "Installation failed. Rolling back the operation..."; \
