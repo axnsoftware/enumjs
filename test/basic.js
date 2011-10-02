@@ -55,7 +55,7 @@ vows.describe('Basic Tests').addBatch({
 			assert.throws(function() { topic.create({ CONST1 : 1, CONST2 : 1 }); }, TypeError);
 			assert.throws(function() { topic.create({ CONST1 : { ordinal : 1 }, CONST2 : 2, 
 				CONST3 : { ordinal : 1 } }); }, TypeError);
-			assert.throws(function() { topic.create({ CONST1 : { ordinal : 2 }, CONST2 : 1, 
+			assert.throws(function() { topic.create({ CONST1 : { ordinal : "a2" }, CONST2 : 1, 
 				CONST3 : { ordinal : 0 } }); }, TypeError);
 		},
 		'with a TypeError on invalid constant literals' : function(topic) {
