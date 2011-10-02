@@ -54,7 +54,7 @@ vows.describe('Basic Tests').addBatch({
 			assert.throws (-> topic.create { "CON ST1" : 0 }), TypeError
 			assert.throws (-> topic.create { "53CONST1" : 0 }), TypeError
 
-	'When an enum is create()d properly using only integers':
+	'Inheritance and prevention of instantiation':
 		topic: () ->
 			Enum = require('../lib/enumjs.js').Enum
 			Enum.create { A : 1, B : 0, C : 0 }
@@ -63,6 +63,25 @@ vows.describe('Basic Tests').addBatch({
 		'values() must not be an instance method' : (topic) ->
 			assert.isUndefined topic.A.values
 			assert.typeOf topic.values, 'function'
+		'enum is a subclass of Enum' : (topic) ->
+			Enum = require('../lib/enumjs.js').Enum
+			assert.equal topic.super_, Enum
+		'enum constants are instances of enum' : (topic) ->
+			Enum = require('../lib/enumjs.js').Enum
+			assert.instanceOf topic.A, topic
+			assert.instanceOf topic.A, Enum 
+			assert.instanceOf topic.B, topic
+			assert.instanceOf topic.B, Enum 
+		'valueOf() class method is different from valueOf() instance method' : (topic) ->
+			assert.notStrictEqual topic.valueOf, topic.A.valueOf 
+			assert.notStrictEqual topic.valueOf, topic.B.valueOf 
+		'subclasses of Enum have no create() factory method' : (topic) ->
+			assert.isUndefined topic.create 
+
+	'When an enum is create()d properly using only integers':
+		topic: () ->
+			Enum = require('../lib/enumjs.js').Enum
+			Enum.create { A : 1, B : 0, C : 0 }
 		'instance method valueOf() must return correct enum constant' : (topic) ->
 			assert.doesNotThrow (-> topic.A.valueOf()), TypeError
 			assert.doesNotThrow (-> topic.A.valueOf('0')), TypeError
@@ -84,22 +103,11 @@ vows.describe('Basic Tests').addBatch({
 			assert.isTrue topic.A.ordinal() == 1
 			assert.isTrue topic.B.ordinal() == 2
 			assert.isTrue topic.C.ordinal() == 3
-		'enum is a subclass of Enum' : (topic) ->
-			Enum = require('../lib/enumjs.js').Enum
-			assert.equal topic.super_, Enum
-		'enum constants are instances of enum' : (topic) ->
-			Enum = require('../lib/enumjs.js').Enum
-			assert.instanceOf topic.A, topic
-			assert.instanceOf topic.A, Enum 
-			assert.instanceOf topic.B, topic
-			assert.instanceOf topic.B, Enum 
 
 	'When an enum is create()d properly using object notation only':
 		topic: () ->
 			Enum = require('../lib/enumjs.js').Enum
 			Enum.create { A : { ordinal : 0 }, B : { ordinal : 0 }, C : {} }
-		'The enum class cannot be instantiated' : (topic) ->
-			assert.throws (-> topic()), TypeError
 		'The minimum ordinal is one (1)' : (topic) ->
 			assert.isTrue topic.A.ordinal() == 1
 		'The ordinals are all in sequence' : (topic) ->
