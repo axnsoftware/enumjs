@@ -1,19 +1,52 @@
+###
+ * Copyright 2011 axn software UG (haftungsbeschränkt)
+ *
+ * Licensed under the Apache License, Version 2.0 (the "License");
+ * you may not use this file except in compliance with the License.
+ * You may obtain a copy of the License at
+ *
+ *      http://www.apache.org/licenses/LICENSE-2.0
+ *
+ * Unless required by applicable law or agreed to in writing, software
+ * distributed under the License is distributed on an "AS IS" BASIS,
+ * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+ * See the License for the specific language governing permissions and
+ * limitations under the License.
+###
 
-
+# The class Enum models the root of a hierarchy of derived classes.
+#
+# The hierarchy itself is shallow, as enums cannot be derived from
+# existing other enums except for when being created when they are
+# initially subclassed from Enum.
 class Enum
+	# Default constructor. Prevents instantiation of the class.
 	constructor: () ->
 		throw new TypeError("enums cannot be instantiated nor derived from."); 
 
+	# Gets the constants' literal name.
+	#
+	# @return the literal name
 	name: () ->
 		return @_name
 
+	# Gets the constants' integer ordinal.
+	#
+	# @return the integer ordinal
 	ordinal: () ->
 		return @_ordinal
 
+	# Same as ordinal().
+	#
+	# @return the integer ordinal
 	valueOf: () ->
 		return @_ordinal
 
+exports.Enum = Enum
 
+
+# The factory used for creating new enum classes.
+# TBD
 Enum.create = (decl) ->
 	oargs = arguments
 	_ = ->
@@ -36,10 +69,17 @@ Enum.create = (decl) ->
 		# make it node compatible
 		clazz.super_ = Enum
 
+		# Returns the constant for either name or ordinal.
+		#
+		# @throws TypeError in case that the value does not match any one of the ordinals or names (case sensitive)
+		# @return enum constant
 		clazz.valueOf = (value) ->
 			throw new TypeError("'#{value}' is not a constant of this.") unless value in dict
 			dict[value] if value in dict
 
+		# Returns the enum constants.
+		#
+		# @return array containing the enum constants defined by the enum class.
 		clazz.values = () ->
 			value for value in values
 
@@ -74,14 +114,10 @@ Enum.create = (decl) ->
 		if values.length == 0
 			throw new TypeError("Enums require at least one literal constant.");
 
+		# prevent derivation and instantiation of the enum class
 		finalized = true;
 
 		clazz
 		
 	_()
-
-
-exports.Enum = Enum;
-
-c = Enum.create( { A : 0, B : 0 } )
 
