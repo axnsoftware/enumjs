@@ -18,35 +18,41 @@ PROJECT = enumjs
 
 INSTALL_ROOT = /usr/local/share/node_modules
 
-LIB = lib/enumjs.js
-TEST = test/basic.js
+SRC = src/lib/enumjs.coffee
+TESTSRC = src/test/basic.coffee
+
+LIB = build/lib/enumjs.js
+TEST = build/test/basic.js
 
 GIT_BIN = `which git`
 EYES_LIB = ./node_modules/eyes/lib/eyes.js
 VOWS_BIN = ./node_modules/vows/bin/vows
+COFFEE_BIN = ./node_modules/coffee-script/bin/coffee
 NODE_BIN = `which node`
 NODE_VER = `$$(which node) --version`
 
 
 .PHONY: test install uninstall prerequisites clean clean-modules
 
-all: prerequisites test
+all: prerequisites $(LIB) $(TEST) test
 
 clean-modules: 
 	@-rm -rf node_modules/eyes
 	@-rm -rf node_modules/vows
 	@-rm -rf node_modules/jsmockito
+	@-rm -rf node_modules/coffee-script
 
 clean:
-	@-rm -f test/*.js.xml
+	@-rm -Rf build
 	@-rm -f ./install.log
 
+$(LIB): $(SRC)
+	$(COFFEE_BIN) -o build/lib/ -c $?
 
-$(LIB) $(TEST):
-	@test -f $@ \
-		|| (echo "required source file $@ was not found"; exit 1 )
+$(TEST): $(TESTSRC)
+	$(COFFEE_BIN) -o build/test/ -c $?
 
-prerequisites: $(TEST) $(LIB)
+prerequisites:
 	@echo "Checking prerequisites..."
 	@echo -n "-> checking availability of node..." \
 		&& ( test -f "$(NODE_BIN)" && echo "FOUND. (Path: $(NODE_BIN); Version: $(NODE_VER).)" ) \
@@ -68,14 +74,16 @@ prerequisites: $(TEST) $(LIB)
 		|| ( echo; echo "-> ERR ./node_modules/vows is not available."; exit 1);
 	@echo -n "-> checking whether $(VOWS_BIN) is executable..." \
 		&& ( test -x $(VOWS_BIN) && echo "OK." ) \
-		|| ( echo; echo "-> ERR $(VOWS_BIN) is not executable.."; exit 1);
+		|| ( echo; echo "-> ERR $(VOWS_BIN) is not executable."; exit 1);
 	@echo -n "-> checking availability of ./node_modules/eyes..." \
 		&& ( test -f $(EYES_LIB) && echo "FOUND." ) \
 		|| ( echo; echo "-> ERR ./node_modules/eyes is not available."; exit 1);
+	@@-mkdir -p build/lib build/test
 
 test: $(TEST)
 	@echo "Running tests..."
-	@$(VOWS_BIN) --xunit --cover-json $? > $?.xml 
+	@-$(VOWS_BIN) --xunit $? > $?.xml
+	$(VOWS_BIN) $?
 
 install: all
 	@echo "Installing..."
@@ -88,7 +96,7 @@ install: all
 		&& install -m 644 -t $(INSTALL_ROOT)/enumjs/ package.json \
 		&& install -m 644 -t $(INSTALL_ROOT)/enumjs/ README \
 		&& install -m 644 -t $(INSTALL_ROOT)/enumjs/ LICENSE \
-		&& install -m 644 -t $(INSTALL_ROOT)/enumjs/lib/ lib/enumjs.js \
+		&& install -m 644 -t $(INSTALL_ROOT)/enumjs/lib/ build/lib/enumjs.js \
 	) 2>>install.log >>install.log \
 	|| ( \
 		echo "Installation failed. Rolling back the operation..."; \

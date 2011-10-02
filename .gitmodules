@@ -7,3 +7,6 @@
 [submodule "node_modules/eyes"]
 	path = node_modules/eyes
 	url = git://github.com/cloudhead/eyes.js.git
+[submodule "node_modules/coffee-script"]
+	path = node_modules/coffee-script
+	url = git://github.com/jashkenas/coffee-script.git
