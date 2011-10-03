@@ -91,4 +91,5 @@ instantiated or derived from. There is a check for that in the Makefile.
 
 - proper README and documentation
 - custom constructors, class and instance methods
+- make the installation target path configurable (defaults to /usr/local/share/node_modules
 
