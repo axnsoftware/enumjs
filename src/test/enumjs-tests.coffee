@@ -165,5 +165,46 @@ vows.describe('Basic Tests').addBatch({
 			assert.isTrue (topic.A.ordinal() - topic.C.ordinal()) == 50
 			assert.isTrue (topic.C.ordinal() - topic.B.ordinal()) == 1
 
+	'Custom constructor':
+		topic: () ->
+			Enum = require('../lib/enumjs.js').Enum
+			Enum.create({ 
+				ctor: (inverse) ->
+					try
+						@_inverse = this.self_.valueOf(inverse)
+					catch e
+						@_inverse = this
+				statics :
+					inverse : (value) ->
+						this.self_.valueOf(value).inverse()
+				instance :
+					inverse : () ->
+						return @_inverse
+				A : 
+					construct : ['B']
+					ordinal : 0
+				B :
+					construct : ['A']
+					ordinal : 2
+				C : 0
+			})
+		'Custom static class fields are available' : (topic) ->
+			assert.isTrue 'inverse' of topic
+		'Custom static class fields work as expected' : (topic) ->
+			assert.strictEqual topic.B, topic.inverse topic.A.name()
+			assert.strictEqual topic.A, topic.inverse topic.B.name()
+			assert.strictEqual topic.C, topic.inverse topic.C.name()
+		'Custom instance fields are available' : (topic) ->
+			assert.isTrue 'inverse' of topic.A
+			assert.isTrue 'inverse' of topic.B
+			assert.isTrue 'inverse' of topic.C
+			assert.isTrue '_inverse' of topic.A
+			assert.isTrue '_inverse' of topic.B
+			assert.isTrue '_inverse' of topic.C
+		'Custom instance method works as expected' : (topic) ->
+			assert.strictEqual topic.B, topic.A.inverse()
+			assert.strictEqual topic.A, topic.B.inverse()
+			assert.strictEqual topic.C, topic.C.inverse()
+
 }).export(module)
 

@@ -83,6 +83,30 @@ Enum.create = (decl) ->
 		clazz.values = () ->
 			value for value in values
 
+		# establish self reference
+		clazz.prototype.self_ = clazz
+
+		# Do we have a custom constructor?
+		ctor = () ->
+
+		if 'ctor' of decl
+			ctor = decl.ctor
+			delete decl.ctor
+
+		# Do we have custom static class fields?
+		if 'statics' of decl
+			for key, value of decl.statics
+				clazz[key] = value
+			delete decl.statics
+
+		# Do we have custom instance fields?
+		if 'instance' of decl
+			for key, value of decl.instance
+				clazz.prototype[key] = value
+			delete decl.instance
+
+		# we bind custom ctors later
+		lateBoundCtor = []
 		rule = /^[A-Za-z_\$]+[A-Za-z0-9\$_]*$/
 		ord = 1
 		for key, spec of decl
@@ -91,10 +115,13 @@ Enum.create = (decl) ->
 			if key.match(rule) is null
 				throw new TypeError("Constant literal must match production '#{rule}'.")
 
+			ctorArgs = []
 			newOrd = -1
 			specType = typeof spec
 			if specType is 'object'
 				specType = 'number'
+				if 'construct' of spec
+					ctorArgs = spec.construct
 				if 'ordinal' of spec
 					specType = typeof spec.ordinal
 					spec = spec.ordinal
@@ -107,12 +134,18 @@ Enum.create = (decl) ->
 				throw new TypeError("Duplicate ordinals. (ordinal='#{ord}', literal='#{dict[ord].name()}', duplicate='#{key}'.)")
 
 			instance = new clazz key, ord
+
 			dict[ord] = dict[key] = clazz[key] = clazz.prototype[key] = instance
 			values.push instance
+			lateBoundCtor.push [ instance, ctorArgs ]
 			ord += 1
 
 		if values.length == 0
 			throw new TypeError("Enums require at least one literal constant.");
+
+		# call custom ctor if avail
+		for pair in lateBoundCtor
+			ctor.apply pair[0], pair[1]
 
 		# prevent derivation and instantiation of the enum class
 		finalized = true;
