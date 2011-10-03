@@ -22,7 +22,7 @@
 class Enum
 	# Default constructor. Prevents instantiation of the class.
 	constructor: () ->
-		throw new TypeError("enums cannot be instantiated nor derived from."); 
+		throw new TypeError("enums cannot be instantiated and must not be inherited from.")
 
 	# Gets the constants' literal name.
 	#
@@ -59,7 +59,7 @@ Enum.create = (decl) ->
 
 		class clazz extends Enum
 			constructor: (name, ordinal) ->
-				throw new TypeError("enums cannot be instantiated nor derived from.") if finalized
+				throw new TypeError("enums cannot be instantiated and must not be inherited from.") if finalized
 				@_name = name
 				@_ordinal = ordinal
 
@@ -74,8 +74,8 @@ Enum.create = (decl) ->
 		# @throws TypeError in case that the value does not match any one of the ordinals or names (case sensitive)
 		# @return enum constant
 		clazz.valueOf = (value) ->
-			throw new TypeError("'#{value}' is not a constant of this.") unless value in dict
-			dict[value] if value in dict
+			throw new TypeError("'#{value}' is not a constant of this.") unless value of dict
+			dict[value] if value of dict
 
 		# Returns the enum constants.
 		#
