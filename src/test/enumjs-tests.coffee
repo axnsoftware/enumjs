@@ -60,6 +60,9 @@ vows.describe('Basic Tests').addBatch({
 			Enum.create { A : 1, B : 0, C : 0 }
 		'The enum class cannot be instantiated' : (topic) ->
 			assert.throws (-> topic()), TypeError
+		'The Enum class cannot be instantiated' : (topic) ->
+			Enum = require('../lib/enumjs.js').Enum
+			assert.throws (-> Enum()), TypeError
 		'values() must not be an instance method' : (topic) ->
 			assert.isUndefined topic.A.values
 			assert.typeOf topic.values, 'function'
@@ -77,6 +80,30 @@ vows.describe('Basic Tests').addBatch({
 			assert.notStrictEqual topic.valueOf, topic.B.valueOf 
 		'subclasses of Enum have no create() factory method' : (topic) ->
 			assert.isUndefined topic.create 
+# nice to have but not possible with existing implementations of extends/inherits
+#		'subclasses of Enum cannot be inherited from' : (topic) ->
+#			assert.throws (-> class t extends topic), TypeError
+#			util = require "util"
+#			assert.throws (-> f = -> {}; util.inherits f, Enum), TypeError
+
+	'Instance methods valueOf() and values()':
+		topic: () ->
+			Enum = require('../lib/enumjs.js').Enum
+			Enum.create { A : 1, B : 0, C : 0 }
+		'values() returns array of length 3' : (topic) ->
+			assert.equal 3, topic.values().length
+		'array returned by values() contains all of the declared enum constants in arbitrary order' : (topic) ->
+			values = topic.values()
+			assert.isTrue topic.A in values
+			assert.isTrue topic.B in values
+			assert.isTrue topic.C in values
+		'valueOf() returns correct constants' : (topic) ->
+			assert.strictEqual topic.A, topic.valueOf('A')
+			assert.strictEqual topic.A, topic.valueOf(1)
+			assert.strictEqual topic.B, topic.valueOf('B')
+			assert.strictEqual topic.B, topic.valueOf(2)
+			assert.strictEqual topic.C, topic.valueOf('C')
+			assert.strictEqual topic.C, topic.valueOf(3)
 
 	'When an enum is create()d properly using only integers':
 		topic: () ->
@@ -118,7 +145,7 @@ vows.describe('Basic Tests').addBatch({
 	'When an enum is create()d properly mixing object notation and integers':
 		topic: () ->
 			Enum = require('../lib/enumjs.js').Enum
-			Enum.create { A : 0, B : { ordinal : 2 }, C : 0 }
+			Enum.create { A : { ordinal : 0 }, B : 2, C : { ordinal : 0 } }
 		'The minimum ordinal is one (1)' : (topic) ->
 			assert.isTrue topic.A.ordinal() == 1
 		'The ordinals are all in sequence' : (topic) ->

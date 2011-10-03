@@ -16,6 +16,9 @@ This is mainly a simple learning project with the goals being set on
  * GNU/Make and its application with node/Javascript projects (http://www.gnu.org/software/make/)
  * vowsjs TDD Framework (http://vowsjs.org/)
  * coffeescript (http://jashkenas.github.com/coffee-script/)
+ * JSCoverage (http://siliconforks.com/jscoverage/)
+ * node-jscoverage (https://github.com/visionmedia/node-jscoverage)
+
 
 
 ## Compatibility 

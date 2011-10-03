@@ -19,10 +19,10 @@ PROJECT = enumjs
 INSTALL_ROOT = /usr/local/share/node_modules
 
 SRC = src/lib/enumjs.coffee
-TESTSRC = src/test/basic.coffee
+TESTSRC = src/test/enumjs-tests.coffee
 
 LIB = build/lib/enumjs.js
-TEST = build/test/basic.js
+TEST = build/test/enumjs-tests.js
 
 GIT_BIN = `which git`
 EYES_LIB = ./node_modules/eyes/lib/eyes.js
@@ -31,15 +31,26 @@ COFFEE_BIN = ./node_modules/coffee-script/bin/coffee
 NODE_BIN = `which node`
 NODE_VER = `$$(which node) --version`
 
+JSCOVERAGE_BIN = ./node_modules/node-jscoverage/jscoverage
 
-.PHONY: test install uninstall prerequisites clean clean-modules
 
-all: prerequisites $(LIB) $(TEST) test
+.PHONY: $(TESTSRC) test-pre test test-post install uninstall prerequisites clean clean-modules help
+
+help:
+	@echo "make targets:"
+	@echo "all -- everything"
+	@echo "clean -- clean the built except the node_modules"
+	@echo "clean-modules -- cleans the node_modules"
+	@echo "test -- run the unit tests"
+	@echo "install -- installs the software, may require root priviledge"
+	@echo "uninstall -- uninstalls the software, may require root priviledge"
+
+all: prerequisites test
 
 clean-modules: 
 	@-rm -rf node_modules/eyes
 	@-rm -rf node_modules/vows
-	@-rm -rf node_modules/jsmockito
+	@-rm -rf node_modules/node-jscoverage
 	@-rm -rf node_modules/coffee-script
 
 clean:
@@ -47,10 +58,28 @@ clean:
 	@-rm -f ./install.log
 
 $(LIB): $(SRC)
-	$(COFFEE_BIN) -o build/lib/ -c $?
+	$(COFFEE_BIN) -o build/lib/ -c $+
 
-$(TEST): $(TESTSRC)
-	$(COFFEE_BIN) -o build/test/ -c $?
+test: $(LIB) $(JSCOVERAGE_BIN) test-pre $(TEST) test-post
+
+test-pre:
+	@mkdir -p build/test
+	@mv build/lib build/lib.orig
+	@$(JSCOVERAGE_BIN) build/lib.orig build/lib
+
+$(TESTSRC):
+	$(COFFEE_BIN) -o build/test/ -c $@
+
+$(TEST): $(TESTSRC) 
+	@-$(VOWS_BIN) --cover-html --xunit $@ > $@.results.xml
+	@-mv coverage.html $@.coverage.html
+	@-$(VOWS_BIN) --cover-json --json $@ > $@.results.json
+	@-mv coverage.json $@.coverage.json
+	$(VOWS_BIN) --spec $@
+
+test-post:
+	@rm -Rf build/lib
+	@mv build/lib.orig build/lib
 
 prerequisites:
 	@echo "Checking prerequisites..."
@@ -78,12 +107,12 @@ prerequisites:
 	@echo -n "-> checking availability of ./node_modules/eyes..." \
 		&& ( test -f $(EYES_LIB) && echo "FOUND." ) \
 		|| ( echo; echo "-> ERR ./node_modules/eyes is not available."; exit 1);
-	@@-mkdir -p build/lib build/test
+	@@-mkdir -p build/lib
 
-test: $(TEST)
-	@echo "Running tests..."
-	@-$(VOWS_BIN) --xunit $? > $?.xml
-	$(VOWS_BIN) $?
+node_modules/node-jscoverage/jscoverage:
+	cd node_modules/node-jscoverage \
+		&& ./configure \
+		&& make
 
 install: all
 	@echo "Installing..."
@@ -94,7 +123,7 @@ install: all
 		&& install -v -d -m 655 $(INSTALL_ROOT)/enumjs \
 		&& install -v -d -m 655 $(INSTALL_ROOT)/enumjs/lib \
 		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/ package.json \
-		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/ README \
+		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/ README.md \
 		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/ LICENSE \
 		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/lib/ build/lib/enumjs.js \
 	) 2>>install.log >>install.log \
@@ -103,7 +132,7 @@ install: all
                 ( \
 			echo "Installation failed. Rolling back the operation..."; \
 			( test -f $(INSTALL_ROOT)/enumjs/lib/enumjs.js && rm -f $(INSTALL_ROOT)/enumjs/lib/enumjs.js ) \
-			&& ( test -f $(INSTALL_ROOT)/enumjs/README && rm -f $(INSTALL_ROOT)/enumjs/README ) \
+			&& ( test -f $(INSTALL_ROOT)/enumjs/README.md && rm -f $(INSTALL_ROOT)/enumjs/README.md ) \
 			&& ( test -f $(INSTALL_ROOT)/enumjs/LICENSE && rm -f $(INSTALL_ROOT)/enumjs/LICENSE ) \
 			&& ( test -f $(INSTALL_ROOT)/enumjs/package.json && rm -f $(INSTALL_ROOT)/enumjs/package.json ) \
 			&& ( test -d $(INSTALL_ROOT)/enumjs/lib/ && rmdir $(INSTALL_ROOT)/enumjs/lib/ ) \
@@ -121,7 +150,7 @@ uninstall:
 	@( \
 		echo "Uninstalling..."; \
 		( test -f $(INSTALL_ROOT)/enumjs/lib/enumjs.js && rm -f $(INSTALL_ROOT)/enumjs/lib/enumjs.js ) \
-		&& ( test -f $(INSTALL_ROOT)/enumjs/README && rm -f $(INSTALL_ROOT)/enumjs/README ) \
+		&& ( test -f $(INSTALL_ROOT)/enumjs/README.md && rm -f $(INSTALL_ROOT)/enumjs/README.md ) \
 		&& ( test -f $(INSTALL_ROOT)/enumjs/LICENSE && rm -f $(INSTALL_ROOT)/enumjs/LICENSE ) \
 		&& ( test -f $(INSTALL_ROOT)/enumjs/package.json && rm -f $(INSTALL_ROOT)/enumjs/package.json ) \
 		&& ( test -d $(INSTALL_ROOT)/enumjs/lib/ && rmdir $(INSTALL_ROOT)/enumjs/lib/ ) \

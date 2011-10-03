@@ -7,3 +7,6 @@
 [submodule "node_modules/coffee-script"]
 	path = node_modules/coffee-script
 	url = git://github.com/jashkenas/coffee-script.git
+[submodule "node_modules/node-jscoverage"]
+	path = node_modules/node-jscoverage
+	url = git://github.com/visionmedia/node-jscoverage.git
