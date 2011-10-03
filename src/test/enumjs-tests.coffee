@@ -17,11 +17,11 @@
 vows = require 'vows'
 assert = require 'assert'
 
-vows.describe('Basic Tests').addBatch({
+vows.describe('enumjs Tests').addBatch({
 
 	'When require()d':
 		topic: () -> 
-			require('../lib/enumjs.js')
+			require '../lib/enumjs.js' 
 		'the source must compile': (topic) ->
 			assert.isNotNull topic
 		'the Enum export must be available': (topic) ->
@@ -32,6 +32,8 @@ vows.describe('Basic Tests').addBatch({
 			assert.throws (-> topic.Enum()), TypeError
 		'Enum.create() must be available': (topic) ->
 			assert.isFunction topic.Enum.create
+		'The Enum class cannot be instantiated' : (topic) ->
+			assert.throws (-> topic.Enum()), TypeError
 
 	'Enum.create() must fail':
 		topic: () ->
@@ -60,11 +62,10 @@ vows.describe('Basic Tests').addBatch({
 			Enum.create { A : 1, B : 0, C : 0 }
 		'The enum class cannot be instantiated' : (topic) ->
 			assert.throws (-> topic()), TypeError
-		'The Enum class cannot be instantiated' : (topic) ->
-			Enum = require('../lib/enumjs.js').Enum
-			assert.throws (-> Enum()), TypeError
 		'values() must not be an instance method' : (topic) ->
 			assert.isUndefined topic.A.values
+			assert.isUndefined topic.B.values
+			assert.isUndefined topic.C.values
 			assert.typeOf topic.values, 'function'
 		'enum is a subclass of Enum' : (topic) ->
 			Enum = require('../lib/enumjs.js').Enum
@@ -75,18 +76,24 @@ vows.describe('Basic Tests').addBatch({
 			assert.instanceOf topic.A, Enum 
 			assert.instanceOf topic.B, topic
 			assert.instanceOf topic.B, Enum 
+			assert.instanceOf topic.C, topic
+			assert.instanceOf topic.C, Enum 
 		'valueOf() class method is different from valueOf() instance method' : (topic) ->
 			assert.notStrictEqual topic.valueOf, topic.A.valueOf 
 			assert.notStrictEqual topic.valueOf, topic.B.valueOf 
+			assert.notStrictEqual topic.valueOf, topic.C.valueOf 
 		'subclasses of Enum have no create() factory method' : (topic) ->
-			assert.isUndefined topic.create 
+			assert.isUndefined topic.create
+			assert.isUndefined topic.A.create
+			assert.isUndefined topic.B.create
+			assert.isUndefined topic.C.create
 # nice to have but not possible with existing implementations of extends/inherits
 #		'subclasses of Enum cannot be inherited from' : (topic) ->
 #			assert.throws (-> class t extends topic), TypeError
 #			util = require "util"
 #			assert.throws (-> f = -> {}; util.inherits f, Enum), TypeError
 
-	'Instance methods valueOf() and values()':
+	'Instance and class methods valueOf() and class method values()':
 		topic: () ->
 			Enum = require('../lib/enumjs.js').Enum
 			Enum.create { A : 1, B : 0, C : 0 }
@@ -97,29 +104,33 @@ vows.describe('Basic Tests').addBatch({
 			assert.isTrue topic.A in values
 			assert.isTrue topic.B in values
 			assert.isTrue topic.C in values
-		'valueOf() returns correct constants' : (topic) ->
-			assert.strictEqual topic.A, topic.valueOf('A')
-			assert.strictEqual topic.A, topic.valueOf(1)
-			assert.strictEqual topic.B, topic.valueOf('B')
-			assert.strictEqual topic.B, topic.valueOf(2)
-			assert.strictEqual topic.C, topic.valueOf('C')
-			assert.strictEqual topic.C, topic.valueOf(3)
+		'valueOf() class method returns correct constants' : (topic) ->
+			assert.strictEqual topic.valueOf('A'), topic.A
+			assert.strictEqual topic.valueOf(1), topic.A
+			assert.strictEqual topic.valueOf(topic.A), topic.A
+			assert.strictEqual topic.valueOf('B'), topic.B
+			assert.strictEqual topic.valueOf(2), topic.B
+			assert.strictEqual topic.valueOf(topic.B), topic.B
+			assert.strictEqual topic.valueOf('C'), topic.C
+			assert.strictEqual topic.valueOf(3), topic.C
+			assert.strictEqual topic.valueOf(topic.C), topic.C
+		'valueOf() and ordinal() instance methods returns correct values' : (topic) ->
+			assert.strictEqual topic.A.valueOf(), topic.A.ordinal()
+			assert.strictEqual topic.B.valueOf(), topic.B.ordinal()
+			assert.strictEqual topic.C.valueOf(), topic.C.ordinal()
+		'name() instance method returns correct values' : (topic) ->
+			assert.strictEqual topic.A.name(), 'A'
+			assert.strictEqual topic.B.name(), 'B'
+			assert.strictEqual topic.C.name(), 'C'
+		'class method valueOf() must throw TypeError on undefined, unknown ordinal or unknown constant literal' : (topic) ->
+			assert.throws (-> topic.valueOf()), TypeError
+			assert.throws (-> topic.valueOf(0)), TypeError
+			assert.throws (-> topic.valueOf('Z')), TypeError
 
 	'When an enum is create()d properly using only integers':
 		topic: () ->
 			Enum = require('../lib/enumjs.js').Enum
 			Enum.create { A : 1, B : 0, C : 0 }
-		'instance method valueOf() must return correct enum constant' : (topic) ->
-			assert.doesNotThrow (-> topic.A.valueOf()), TypeError
-			assert.doesNotThrow (-> topic.A.valueOf('0')), TypeError
-			assert.doesNotThrow (-> topic.A.valueOf('Z')), TypeError
-			assert.equal topic.A.valueOf(), topic.A.ordinal()
-			assert.equal topic.A.valueOf('0'), topic.A.ordinal()
-			assert.equal topic.A.valueOf('Z'), topic.A.ordinal()
-		'class method valueOf() must throw TypeError on undefined, unknown ordinal or unknown constant literal' : (topic) ->
-			assert.throws (-> topic.valueOf()), TypeError
-			assert.throws (-> topic.valueOf(0)), TypeError
-			assert.throws (-> topic.valueOf('Z')), TypeError
 		'valueOf() must comply to the official protocol' : (topic) ->
 			assert.doesNotThrow (-> topic.A.valueOf()), TypeError
 			assert.isNumber topic.A.valueOf()
@@ -171,15 +182,18 @@ vows.describe('Basic Tests').addBatch({
 			Enum.create({ 
 				ctor: (inverse) ->
 					try
-						@_inverse = this.self_.valueOf(inverse)
+						@_inverse = this.self.valueOf(inverse)
 					catch e
 						@_inverse = this
+					this
 				statics :
 					inverse : (value) ->
-						this.self_.valueOf(value).inverse()
+						self.valueOf(value).inverse()
+					staticProp : {}
 				instance :
 					inverse : () ->
-						return @_inverse
+						@_inverse
+					instanceProp : { a : 1 }
 				A : 
 					construct : ['B']
 					ordinal : 0
@@ -190,10 +204,18 @@ vows.describe('Basic Tests').addBatch({
 			})
 		'Custom static class fields are available' : (topic) ->
 			assert.isTrue 'inverse' of topic
+			assert.isTrue 'staticProp' of topic
 		'Custom static class fields work as expected' : (topic) ->
-			assert.strictEqual topic.B, topic.inverse topic.A.name()
-			assert.strictEqual topic.A, topic.inverse topic.B.name()
-			assert.strictEqual topic.C, topic.inverse topic.C.name()
+			assert.strictEqual topic.inverse(topic.A.name()), topic.B
+			assert.strictEqual topic.inverse(topic.A.ordinal()), topic.B
+			assert.strictEqual topic.inverse(topic.A), topic.B
+			assert.strictEqual topic.inverse(topic.B.name()), topic.A
+			assert.strictEqual topic.inverse(topic.B.ordinal()), topic.A
+			assert.strictEqual topic.inverse(topic.B), topic.A
+			assert.strictEqual topic.inverse(topic.C.name()), topic.C
+			assert.strictEqual topic.inverse(topic.C.ordinal()), topic.C
+			assert.strictEqual topic.inverse(topic.C), topic.C
+			assert.deepEqual topic.staticProp, {}
 		'Custom instance fields are available' : (topic) ->
 			assert.isTrue 'inverse' of topic.A
 			assert.isTrue 'inverse' of topic.B
@@ -201,10 +223,19 @@ vows.describe('Basic Tests').addBatch({
 			assert.isTrue '_inverse' of topic.A
 			assert.isTrue '_inverse' of topic.B
 			assert.isTrue '_inverse' of topic.C
+			assert.isTrue 'staticProp' not of topic.A
+			assert.isTrue 'instanceProp' of topic.A
+			assert.isTrue 'staticProp' not of topic.B
+			assert.isTrue 'instanceProp' of topic.B
+			assert.isTrue 'staticProp' not of topic.C
+			assert.isTrue 'instanceProp' of topic.C
 		'Custom instance method works as expected' : (topic) ->
-			assert.strictEqual topic.B, topic.A.inverse()
-			assert.strictEqual topic.A, topic.B.inverse()
-			assert.strictEqual topic.C, topic.C.inverse()
+			assert.strictEqual topic.A.inverse(), topic.B
+			assert.strictEqual topic.B.inverse(), topic.A
+			assert.strictEqual topic.C.inverse(), topic.C
+			assert.deepEqual topic.A.instanceProp, { a: 1 }
+			assert.strictEqual topic.A.instanceProp, topic.B.instanceProp
+			assert.strictEqual topic.B.instanceProp, topic.C.instanceProp
 
 }).export(module)
 

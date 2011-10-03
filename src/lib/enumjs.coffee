@@ -49,8 +49,8 @@ exports.Enum = Enum
 # TBD
 Enum.create = (decl) ->
 	oargs = arguments
-	_ = ->
-		if decl is null or oargs.length == 0 or decl.length or typeof decl isnt 'object'
+	declare = ->
+		if decl is null or oargs.length == 0 or typeof decl == 'array' or typeof decl isnt 'object'
 			throw new TypeError("Illegal argument.") 
 
 		dict = {}
@@ -74,8 +74,11 @@ Enum.create = (decl) ->
 		# @throws TypeError in case that the value does not match any one of the ordinals or names (case sensitive)
 		# @return enum constant
 		clazz.valueOf = (value) ->
-			throw new TypeError("'#{value}' is not a constant of this.") unless value of dict
-			dict[value] if value of dict
+			if value instanceof clazz
+				return value
+			if value of dict
+				return dict[value]
+			throw new TypeError("'#{value}' is not a constant of this.")
 
 		# Returns the enum constants.
 		#
@@ -83,30 +86,40 @@ Enum.create = (decl) ->
 		clazz.values = () ->
 			value for value in values
 
-		# establish self reference
-		clazz.prototype.self_ = clazz
-
 		# Do we have a custom constructor?
-		ctor = () ->
-
+		ctor = null
 		if 'ctor' of decl
 			ctor = decl.ctor
 			delete decl.ctor
 
 		# Do we have custom static class fields?
+		self = clazz
+		regexp = /^function[^(]*[(]([^)]*)[)](.*)$/
 		if 'statics' of decl
-			for key, value of decl.statics
-				clazz[key] = value
+			for name, field of decl.statics
+				if typeof field == 'function'
+					# must eval()uate here to overcome scope limitations
+					source = field.toString()
+					eval "clazz[name] = " + source
+				else
+					clazz[name] = field
 			delete decl.statics
 
-		# Do we have custom instance fields?
+		# bind custom instance fields if avail
 		if 'instance' of decl
-			for key, value of decl.instance
-				clazz.prototype[key] = value
+			for name, field of decl.instance
+				if typeof field == 'function'
+					fun = (field) ->
+						method = field
+						-> 
+							method.apply this, arguments
+					clazz.prototype[name] = fun field
+				else
+					clazz.prototype[name] = field
 			delete decl.instance
 
 		# we bind custom ctors later
-		lateBoundCtor = []
+		lateBoundCtorArgs = []
 		rule = /^[A-Za-z_\$]+[A-Za-z0-9\$_]*$/
 		ord = 1
 		for key, spec of decl
@@ -134,23 +147,28 @@ Enum.create = (decl) ->
 				throw new TypeError("Duplicate ordinals. (ordinal='#{ord}', literal='#{dict[ord].name()}', duplicate='#{key}'.)")
 
 			instance = new clazz key, ord
+			instance.self = clazz
+			lateBoundCtorArgs.push ctorArgs
 
 			dict[ord] = dict[key] = clazz[key] = clazz.prototype[key] = instance
 			values.push instance
-			lateBoundCtor.push [ instance, ctorArgs ]
 			ord += 1
 
 		if values.length == 0
 			throw new TypeError("Enums require at least one literal constant.");
 
-		# call custom ctor if avail
-		for pair in lateBoundCtor
-			ctor.apply pair[0], pair[1]
+		# bind custom ctor if avail
+		if ctor?
+			i = 0
+			len = values.length
+			while i < len
+				ctor.apply values[i], lateBoundCtorArgs[i]
+				i++
 
-		# prevent derivation and instantiation of the enum class
+		# prevent instantiation of the enum class
 		finalized = true;
 
 		clazz
 		
-	_()
+	declare()
 

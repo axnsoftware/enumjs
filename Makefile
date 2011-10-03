@@ -60,7 +60,7 @@ clean:
 $(LIB): $(SRC)
 	$(COFFEE_BIN) -o build/lib/ -c $+
 
-test: $(LIB) $(JSCOVERAGE_BIN) test-pre $(TEST) test-post
+test: clean $(LIB) $(JSCOVERAGE_BIN) test-pre $(TEST) test-post
 
 test-pre:
 	@mkdir -p build/test
