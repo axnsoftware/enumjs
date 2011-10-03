@@ -10,3 +10,6 @@
 [submodule "node_modules/node-jscoverage"]
 	path = node_modules/node-jscoverage
 	url = git://github.com/visionmedia/node-jscoverage.git
+[submodule "wiki"]
+	path = wiki
+	url = git@github.com:axnsoftware/enumjs.wiki.git

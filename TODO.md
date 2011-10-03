@@ -1,5 +1,6 @@
+# enumjs
 
-TODO 
+## TODO 
 
   - proper README
   - cleanup documentation
