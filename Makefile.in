@@ -20,10 +20,6 @@ INSTALL_ROOT = /usr/local/share/node_modules
 
 include Makefile.decl.in
 
-CURRENTDIR = .
-SOURCEDIR := $(CURRENTDIR)/src
-BUILDDIR := $(CURRENTDIR)/build
-
 COFFEELIBDIRS = $(SRCLIBDIRS:$(SOURCEDIR)%=$(BUILDDIR)/coffee%)
 COFFEELIB = $(SRCLIB:$(SOURCEDIR)/%=$(BUILDDIR)/coffee/%)
 

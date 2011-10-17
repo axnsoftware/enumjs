@@ -1,4 +1,6 @@
 .*.swp*
+Makefile.decl.in
+Makefile
 install.log
 tmp
 *~*

@@ -24,23 +24,11 @@ class Enum
 	constructor: () ->
 		throw new TypeError("enums cannot be instantiated and must not be inherited from.")
 
-	# Gets the constants' literal name.
-	#
-	# @return the literal name
-	name: () ->
-		return @_name
-
-	# Gets the constants' integer ordinal.
-	#
-	# @return the integer ordinal
-	ordinal: () ->
-		return @_ordinal
-
 	# Same as ordinal().
 	#
 	# @return the integer ordinal
 	valueOf: () ->
-		return @_ordinal
+		return @ordinal
 
 exports.Enum = Enum
 
@@ -60,8 +48,8 @@ Enum.create = (decl) ->
 		class clazz extends Enum
 			constructor: (name, ordinal) ->
 				throw new TypeError("enums cannot be instantiated and must not be inherited from.") if finalized
-				@_name = name
-				@_ordinal = ordinal
+				Object.defineProperty @, 'name', { value: name, writable: false, enumerable: true }
+				Object.defineProperty @, 'ordinal', { value: ordinal, writable: false, enumerable: true }
 
 		# we must delete the create method
 		delete clazz.create

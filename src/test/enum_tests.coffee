@@ -115,13 +115,13 @@ vows.describe('enumjs Tests').addBatch({
 			assert.strictEqual topic.valueOf(3), topic.C
 			assert.strictEqual topic.valueOf(topic.C), topic.C
 		'valueOf() and ordinal() instance methods returns correct values' : (topic) ->
-			assert.strictEqual topic.A.valueOf(), topic.A.ordinal()
-			assert.strictEqual topic.B.valueOf(), topic.B.ordinal()
-			assert.strictEqual topic.C.valueOf(), topic.C.ordinal()
+			assert.strictEqual topic.A.valueOf(), topic.A.ordinal
+			assert.strictEqual topic.B.valueOf(), topic.B.ordinal
+			assert.strictEqual topic.C.valueOf(), topic.C.ordinal
 		'name() instance method returns correct values' : (topic) ->
-			assert.strictEqual topic.A.name(), 'A'
-			assert.strictEqual topic.B.name(), 'B'
-			assert.strictEqual topic.C.name(), 'C'
+			assert.strictEqual topic.A.name, 'A'
+			assert.strictEqual topic.B.name, 'B'
+			assert.strictEqual topic.C.name, 'C'
 		'class method valueOf() must throw TypeError on undefined, unknown ordinal or unknown constant literal' : (topic) ->
 			assert.throws (-> topic.valueOf()), TypeError
 			assert.throws (-> topic.valueOf(0)), TypeError
@@ -136,45 +136,56 @@ vows.describe('enumjs Tests').addBatch({
 			assert.isNumber topic.A.valueOf()
 			assert.equal 1, topic.A.valueOf()
 		'The minimum ordinal is one (1)' : (topic) ->
-			assert.isTrue topic.A.ordinal() == 1
+			assert.isTrue topic.A.ordinal == 1
 		'The ordinals are all in sequence' : (topic) ->
-			assert.isTrue topic.A.ordinal() == 1
-			assert.isTrue topic.B.ordinal() == 2
-			assert.isTrue topic.C.ordinal() == 3
+			assert.isTrue topic.A.ordinal == 1
+			assert.isTrue topic.B.ordinal == 2
+			assert.isTrue topic.C.ordinal == 3
 
 	'When an enum is create()d properly using object notation only':
 		topic: () ->
 			Enum = require('../lib/enum.coffee').Enum
 			Enum.create { A : { ordinal : 0 }, B : { ordinal : 0 }, C : {} }
 		'The minimum ordinal is one (1)' : (topic) ->
-			assert.isTrue topic.A.ordinal() == 1
+			assert.isTrue topic.A.ordinal == 1
 		'The ordinals are all in sequence' : (topic) ->
-			assert.isTrue topic.A.ordinal() == 1
-			assert.isTrue topic.B.ordinal() == 2
-			assert.isTrue topic.C.ordinal() == 3
+			assert.isTrue topic.A.ordinal == 1
+			assert.isTrue topic.B.ordinal == 2
+			assert.isTrue topic.C.ordinal == 3
 
 	'When an enum is create()d properly mixing object notation and integers':
 		topic: () ->
 			Enum = require('../lib/enum.coffee').Enum
 			Enum.create { A : { ordinal : 0 }, B : 2, C : { ordinal : 0 } }
 		'The minimum ordinal is one (1)' : (topic) ->
-			assert.isTrue topic.A.ordinal() == 1
+			assert.isTrue topic.A.ordinal == 1
 		'The ordinals are all in sequence' : (topic) ->
-			assert.isTrue topic.A.ordinal() == 1
-			assert.isTrue topic.B.ordinal() == 2
-			assert.isTrue topic.C.ordinal() == 3
+			assert.isTrue topic.A.ordinal == 1
+			assert.isTrue topic.B.ordinal == 2
+			assert.isTrue topic.C.ordinal == 3
 
 	'When an enum is create()d properly with custom ordinals':
 		topic: () ->
 			Enum = require('../lib/enum.coffee').Enum
 			Enum.create { A : 100, B : { ordinal : 49 }, C : 0 }
 		'The minimum ordinal is 49' : (topic) ->
-			assert.isTrue topic.B.ordinal() == 49
-			assert.isTrue topic.A.ordinal() > topic.B.ordinal()
-			assert.isTrue topic.C.ordinal() > topic.B.ordinal()
+			assert.isTrue topic.B.ordinal == 49
+			assert.isTrue topic.A.ordinal > topic.B.ordinal
+			assert.isTrue topic.C.ordinal > topic.B.ordinal
 		'There is a gap of 50 between the ordinals of A and C, with B and C being in sequence' : (topic) ->
-			assert.isTrue (topic.A.ordinal() - topic.C.ordinal()) == 50
-			assert.isTrue (topic.C.ordinal() - topic.B.ordinal()) == 1
+			assert.isTrue (topic.A.ordinal - topic.C.ordinal) == 50
+			assert.isTrue (topic.C.ordinal - topic.B.ordinal) == 1
+
+	'When an enum is create()d properly':
+		topic: () ->
+			Enum = require('../lib/enum.coffee').Enum
+			Enum.create { A : 100, B : { ordinal : 49 }, C : 0 }
+		' its instance\'s name property must be read only' : (topic) ->
+			topic.A.name = 'test'
+			assert.isTrue topic.A.name == 'A'
+		' its instance\'s ordinal property must be read only' : (topic) ->
+			topic.A.ordinal = -1
+			assert.isTrue topic.A.ordinal == 100
 
 	'Custom constructor':
 		topic: () ->
@@ -206,14 +217,14 @@ vows.describe('enumjs Tests').addBatch({
 			assert.isTrue 'inverse' of topic
 			assert.isTrue 'staticProp' of topic
 		'Custom static class fields work as expected' : (topic) ->
-			assert.strictEqual topic.inverse(topic.A.name()), topic.B
-			assert.strictEqual topic.inverse(topic.A.ordinal()), topic.B
+			assert.strictEqual topic.inverse(topic.A.name), topic.B
+			assert.strictEqual topic.inverse(topic.A.ordinal), topic.B
 			assert.strictEqual topic.inverse(topic.A), topic.B
-			assert.strictEqual topic.inverse(topic.B.name()), topic.A
-			assert.strictEqual topic.inverse(topic.B.ordinal()), topic.A
+			assert.strictEqual topic.inverse(topic.B.name), topic.A
+			assert.strictEqual topic.inverse(topic.B.ordinal), topic.A
 			assert.strictEqual topic.inverse(topic.B), topic.A
-			assert.strictEqual topic.inverse(topic.C.name()), topic.C
-			assert.strictEqual topic.inverse(topic.C.ordinal()), topic.C
+			assert.strictEqual topic.inverse(topic.C.name), topic.C
+			assert.strictEqual topic.inverse(topic.C.ordinal), topic.C
 			assert.strictEqual topic.inverse(topic.C), topic.C
 			assert.deepEqual topic.staticProp, {}
 		'Custom instance fields are available' : (topic) ->
