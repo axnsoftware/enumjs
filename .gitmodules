@@ -13,3 +13,9 @@
 [submodule "wiki"]
 	path = wiki
 	url = git@github.com:axnsoftware/enumjs.wiki.git
+[submodule "node_modules/jison"]
+	path = node_modules/jison
+	url = git://github.com/zaach/jison.git
+[submodule "node_modules/narwhal"]
+	path = node_modules/narwhal
+	url = git://github.com/tlrobinson/narwhal.git

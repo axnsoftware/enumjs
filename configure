@@ -1,0 +1,35 @@
+#!/bin/sh
+
+BASE_DIR=.
+SRC_DIR=$BASE_DIR/src
+MAKEFILE=$BASE_DIR/Makefile
+MAKEFILE_IN=$BASE_DIR/Makefile.in
+MAKEFILE_DECL_IN=$BASE_DIR/Makefile.decl.in
+
+gen_file_list() {
+	LOCATION=$1
+	TYPE=$2
+
+	find "$LOCATION" -type $TYPE | grep -v "/[.]" | tr '\n' ':' | sed -r "s/^/ \\\\\\n\t/" | sed -r "s/:$/\n/" | sed -r "s/:/ \\\\\n\t/g"
+}
+
+gen_source_in() {
+	SRCLIBDIRS=`gen_file_list "$SRC_DIR/lib" d`
+	SRCLIB=`gen_file_list "$SRC_DIR/lib" f`
+	SRCTESTDIRS=`gen_file_list "$SRC_DIR/test" d`
+	SRCTEST=`gen_file_list "$SRC_DIR/test" f`
+
+	cat >"$MAKEFILE_DECL_IN" <<-SOURCE_IN_EOF
+		SRCLIBDIRS=$SRCLIBDIRS
+		SRCLIB=$SRCLIB
+		SRCTESTDIRS=$SRCTESTDIRS
+		SRCTEST=$SRCTEST
+	SOURCE_IN_EOF
+}
+
+test -f "$MAKEFILE" && echo "run make clean first." && exit 1
+test -f "$MAKEFILE_DECL_IN" && echo "run make clean first." && exit 1
+
+gen_source_in
+cp $MAKEFILE_IN $MAKEFILE
+

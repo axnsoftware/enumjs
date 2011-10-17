@@ -18,11 +18,25 @@ PROJECT = enumjs
 
 INSTALL_ROOT = /usr/local/share/node_modules
 
-SRC = src/lib/enumjs.coffee
-TESTSRC = src/test/enumjs-tests.coffee
+include Makefile.decl.in
 
-LIB = build/lib/enumjs.js
-TEST = build/test/enumjs-tests.js
+CURRENTDIR = .
+SOURCEDIR := $(CURRENTDIR)/src
+BUILDDIR := $(CURRENTDIR)/build
+
+COFFEELIBDIRS = $(SRCLIBDIRS:$(SOURCEDIR)%=$(BUILDDIR)/coffee%)
+COFFEELIB = $(SRCLIB:$(SOURCEDIR)/%=$(BUILDDIR)/coffee/%)
+
+COFFEETESTDIRS = $(SRCTESTDIRS:$(SOURCEDIR)%=$(BUILDDIR)/coffee%)
+COFFEETEST = $(SRCTEST:$(SOURCEDIR)%=$(BUILDDIR)/coffee%)
+
+JSLIBDIRS = $(SRCLIBDIRS:$(SOURCEDIR)%=$(BUILDDIR)/js%)
+JSLIB = $(SRCLIB:$(SOURCEDIR)%.coffee=$(BUILDDIR)/js%.js)
+
+JSTESTDIRS = $(SRCTESTDIRS:$(SOURCEDIR)%=$(BUILDDIR)/js%)
+JSTEST = $(SRCTEST:$(SOURCEDIR)%.coffee=$(BUILDDIR)/js%.js)
+
+JSCOVTEST = $(JSTEST:$(BUILDDIR)/js%=$(BUILDDIR)/jscov%)
 
 GIT_BIN = `which git`
 EYES_LIB = ./node_modules/eyes/lib/eyes.js
@@ -30,22 +44,58 @@ VOWS_BIN = ./node_modules/vows/bin/vows
 COFFEE_BIN = ./node_modules/coffee-script/bin/coffee
 NODE_BIN = `which node`
 NODE_VER = `$$(which node) --version`
-
 JSCOVERAGE_BIN = ./node_modules/node-jscoverage/jscoverage
 
 
-.PHONY: $(TESTSRC) test-pre test test-post install uninstall prerequisites clean clean-modules help
+.PHONY: prerequisites compile-pre compile test-pre test test-post install uninstall clean clean-modules help debug $(JSCOVTEST)
 
 help:
-	@echo "make targets:"
+	@echo "Configure first: ./configure"
+	@echo "Existing make targets:"
 	@echo "all -- everything"
-	@echo "clean -- clean the built except the node_modules"
+	@echo "clean -- clean the built except the node_modules, after that ./configure needs to be run again"
+	@echo "clean-test -- cleans the test build"
 	@echo "clean-modules -- cleans the node_modules"
-	@echo "test -- run the unit tests"
+	@echo "compile -- compiles the sources and the tests"
+	@echo "test -- runs the unit tests"
 	@echo "install -- installs the software, may require root priviledge"
 	@echo "uninstall -- uninstalls the software, may require root priviledge"
 
-all: prerequisites test
+
+debug:
+	@echo $(CURRENTDIR)
+	@echo $(SOURCEDIR)
+	@echo $(BUILDDIR)
+	@echo $(SRCLIBDIRS)
+	@echo $(SRCLIB)
+	@echo $(SRCTESTDIRS)
+	@echo $(SRCTEST)
+	@echo $(COFFEELIBDIRS)
+	@echo $(COFFEELIB)
+	@echo $(COFFEETESTDIRS)
+	@echo $(COFFEETEST)
+	@echo $(JSLIBDIRS)
+	@echo $(JSLIB)
+	@echo $(JSTESTDIRS)
+	@echo $(JSTEST)
+	@echo $(JSCOVTEST)
+
+
+all: prerequisites $(JSCOVERAGE_BIN) compile test
+
+
+#
+# CLEAN TARGETS
+#
+
+clean:
+	@-rm -Rf build
+	@-rm -f ./install.log
+	@-rm -f ./Makefile.decl.in
+	@-rm -f ./Makefile
+
+clean-test:
+	@-rm -Rf build/jscov
 
 clean-modules: 
 	@-rm -rf node_modules/eyes
@@ -53,33 +103,48 @@ clean-modules:
 	@-rm -rf node_modules/node-jscoverage
 	@-rm -rf node_modules/coffee-script
 
-clean:
-	@-rm -Rf build
-	@-rm -f ./install.log
 
-$(LIB): $(SRC)
-	$(COFFEE_BIN) -o build/lib/ -c $+
+#
+# COMPILE TARGETS
+#
 
-test: clean $(LIB) $(JSCOVERAGE_BIN) test-pre $(TEST) test-post
+compile: compile-pre $(COFFEELIB) $(COFFEETEST) $(JSLIB) $(JSTEST)
+
+compile-pre: $(COFFEELIBDIRS) $(COFFEETESTDIRS) $(JSLIBDIRS) $(JSTESTDIRS) 
+
+$(COFFEELIB) $(COFFEETEST) : $(SRCLIB) $(SRCTEST)
+	@cp $(@:build/coffee/%=src/%) $@
+
+$(JSLIB) $(JSTEST) : $(SRCLIB) $(SRCTEST)
+	@$(COFFEE_BIN) -o `dirname $@` -c $(@:build/js/%.js=src/%.coffee)
+	@-sed -r "s/[.]coffee(['\"][^)]*[)])/.js\1/g" -i $@
+
+$(COFFEELIBDIRS) $(COFFEETESTDIRS) $(JSLIBDIRS) $(JSTESTDIRS):
+	@mkdir -p $@
+
+
+#
+# TEST TARGETS
+#
+
+test: test-pre $(JSCOVTEST)
 
 test-pre:
-	@mkdir -p build/test
-	@mv build/lib build/lib.orig
-	@$(JSCOVERAGE_BIN) build/lib.orig build/lib
+	@$(JSCOVERAGE_BIN) --no-instrument=test build/js build/jscov
 
-$(TESTSRC):
-	$(COFFEE_BIN) -o build/test/ -c $@
+$(JSCOVTEST):
+	@$(VOWS_BIN) --cover-html --xunit $@ > $@.results.xml; \
+	 RC=$${?}; \
+	 mv coverage.html $@.coverage.html; \
+	 exit $$RC;
+#	@-$(VOWS_BIN) --cover-json --json $@ > $@.results.json
+#	@-mv coverage.json $@.coverage.json
+#	$(VOWS_BIN) --spec $@
 
-$(TEST): $(TESTSRC) 
-	@-$(VOWS_BIN) --cover-html --xunit $@ > $@.results.xml
-	@-mv coverage.html $@.coverage.html
-	@-$(VOWS_BIN) --cover-json --json $@ > $@.results.json
-	@-mv coverage.json $@.coverage.json
-	$(VOWS_BIN) --spec $@
 
-test-post:
-	@rm -Rf build/lib
-	@mv build/lib.orig build/lib
+#
+# PREREQUISITES TARGETS
+#
 
 prerequisites:
 	@echo "Checking prerequisites..."
@@ -107,12 +172,16 @@ prerequisites:
 	@echo -n "-> checking availability of ./node_modules/eyes..." \
 		&& ( test -f $(EYES_LIB) && echo "FOUND." ) \
 		|| ( echo; echo "-> ERR ./node_modules/eyes is not available."; exit 1);
-	@@-mkdir -p build/lib
 
-node_modules/node-jscoverage/jscoverage:
+$(JSCOVERAGE_BIN):
 	cd node_modules/node-jscoverage \
 		&& ./configure \
 		&& make
+
+
+#
+# INSTALL TARGETS
+#
 
 install: all
 	@echo "Installing..."
@@ -122,19 +191,23 @@ install: all
 		install -v -d -m 655 $(INSTALL_ROOT) \
 		&& install -v -d -m 655 $(INSTALL_ROOT)/enumjs \
 		&& install -v -d -m 655 $(INSTALL_ROOT)/enumjs/lib \
+		&& install -v -d -m 655 $(INSTALL_ROOT)/enumjs/lib/http \
 		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/ package.json \
 		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/ README.md \
 		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/ LICENSE \
-		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/lib/ build/lib/enumjs.js \
+		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/lib/ build/js/lib/enumjs.js \
+		&& install -v -m 644 -t $(INSTALL_ROOT)/enumjs/lib/http/ build/js/lib/http/EHttpStatus.js \
 	) 2>>install.log >>install.log \
 	|| ( \
 		echo "Installation failed. Rolling back the operation..."; \
                 ( \
 			echo "Installation failed. Rolling back the operation..."; \
-			( test -f $(INSTALL_ROOT)/enumjs/lib/enumjs.js && rm -f $(INSTALL_ROOT)/enumjs/lib/enumjs.js ) \
+			( test -f $(INSTALL_ROOT)/enumjs/lib/http/EHttpStatus.js && rm -f $(INSTALL_ROOT)/enumjs/lib/http/EHttpStatus.js ) \
+			&& ( test -f $(INSTALL_ROOT)/enumjs/lib/enumjs.js && rm -f $(INSTALL_ROOT)/enumjs/lib/enumjs.js ) \
 			&& ( test -f $(INSTALL_ROOT)/enumjs/README.md && rm -f $(INSTALL_ROOT)/enumjs/README.md ) \
 			&& ( test -f $(INSTALL_ROOT)/enumjs/LICENSE && rm -f $(INSTALL_ROOT)/enumjs/LICENSE ) \
 			&& ( test -f $(INSTALL_ROOT)/enumjs/package.json && rm -f $(INSTALL_ROOT)/enumjs/package.json ) \
+			&& ( test -d $(INSTALL_ROOT)/enumjs/lib/http && rmdir $(INSTALL_ROOT)/enumjs/lib/http ) \
 			&& ( test -d $(INSTALL_ROOT)/enumjs/lib/ && rmdir $(INSTALL_ROOT)/enumjs/lib/ ) \
 			&& ( test -d $(INSTALL_ROOT)/enumjs/ && rmdir $(INSTALL_ROOT)/enumjs/ ) \
                         && ( test -d $(INSTALL_ROOT)/ && rmdir $(INSTALL_ROOT)/ ) \
@@ -149,10 +222,12 @@ uninstall:
 	@echo "Uninstalling..."
 	@( \
 		echo "Uninstalling..."; \
-		( test -f $(INSTALL_ROOT)/enumjs/lib/enumjs.js && rm -f $(INSTALL_ROOT)/enumjs/lib/enumjs.js ) \
+		( test -f $(INSTALL_ROOT)/enumjs/lib/http/EHttpStatus.js && rm -f $(INSTALL_ROOT)/enumjs/lib/http/EHttpStatus.js ) \
+		&& ( test -f $(INSTALL_ROOT)/enumjs/lib/enumjs.js && rm -f $(INSTALL_ROOT)/enumjs/lib/enumjs.js ) \
 		&& ( test -f $(INSTALL_ROOT)/enumjs/README.md && rm -f $(INSTALL_ROOT)/enumjs/README.md ) \
 		&& ( test -f $(INSTALL_ROOT)/enumjs/LICENSE && rm -f $(INSTALL_ROOT)/enumjs/LICENSE ) \
 		&& ( test -f $(INSTALL_ROOT)/enumjs/package.json && rm -f $(INSTALL_ROOT)/enumjs/package.json ) \
+		&& ( test -d $(INSTALL_ROOT)/enumjs/lib/http && rmdir $(INSTALL_ROOT)/enumjs/lib/http ) \
 		&& ( test -d $(INSTALL_ROOT)/enumjs/lib/ && rmdir $(INSTALL_ROOT)/enumjs/lib/ ) \
 		&& ( test -d $(INSTALL_ROOT)/enumjs/ && rmdir $(INSTALL_ROOT)/enumjs/ ) \
 		&& ( test -d $(INSTALL_ROOT)/ && rmdir $(INSTALL_ROOT)/ ) \

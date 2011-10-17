@@ -21,7 +21,7 @@ vows.describe('enumjs Tests').addBatch({
 
 	'When require()d':
 		topic: () -> 
-			require '../lib/enumjs.js' 
+			require '../lib/enum.coffee' 
 		'the source must compile': (topic) ->
 			assert.isNotNull topic
 		'the Enum export must be available': (topic) ->
@@ -37,7 +37,7 @@ vows.describe('enumjs Tests').addBatch({
 
 	'Enum.create() must fail':
 		topic: () ->
-			require('../lib/enumjs.js').Enum
+			require('../lib/enum.coffee').Enum
 		'with a TypeError on an empty arguments list' : (topic) ->
 			assert.throws (-> topic.create()), TypeError
 		'with a TypeError on an empty declaration' : (topic) ->
@@ -58,7 +58,7 @@ vows.describe('enumjs Tests').addBatch({
 
 	'Inheritance and prevention of instantiation':
 		topic: () ->
-			Enum = require('../lib/enumjs.js').Enum
+			Enum = require('../lib/enum.coffee').Enum
 			Enum.create { A : 1, B : 0, C : 0 }
 		'The enum class cannot be instantiated' : (topic) ->
 			assert.throws (-> topic()), TypeError
@@ -68,10 +68,10 @@ vows.describe('enumjs Tests').addBatch({
 			assert.isUndefined topic.C.values
 			assert.typeOf topic.values, 'function'
 		'enum is a subclass of Enum' : (topic) ->
-			Enum = require('../lib/enumjs.js').Enum
+			Enum = require('../lib/enum.coffee').Enum
 			assert.equal topic.super_, Enum
 		'enum constants are instances of enum' : (topic) ->
-			Enum = require('../lib/enumjs.js').Enum
+			Enum = require('../lib/enum.coffee').Enum
 			assert.instanceOf topic.A, topic
 			assert.instanceOf topic.A, Enum 
 			assert.instanceOf topic.B, topic
@@ -95,7 +95,7 @@ vows.describe('enumjs Tests').addBatch({
 
 	'Instance and class methods valueOf() and class method values()':
 		topic: () ->
-			Enum = require('../lib/enumjs.js').Enum
+			Enum = require('../lib/enum.coffee').Enum
 			Enum.create { A : 1, B : 0, C : 0 }
 		'values() returns array of length 3' : (topic) ->
 			assert.equal 3, topic.values().length
@@ -129,7 +129,7 @@ vows.describe('enumjs Tests').addBatch({
 
 	'When an enum is create()d properly using only integers':
 		topic: () ->
-			Enum = require('../lib/enumjs.js').Enum
+			Enum = require('../lib/enum.coffee').Enum
 			Enum.create { A : 1, B : 0, C : 0 }
 		'valueOf() must comply to the official protocol' : (topic) ->
 			assert.doesNotThrow (-> topic.A.valueOf()), TypeError
@@ -144,7 +144,7 @@ vows.describe('enumjs Tests').addBatch({
 
 	'When an enum is create()d properly using object notation only':
 		topic: () ->
-			Enum = require('../lib/enumjs.js').Enum
+			Enum = require('../lib/enum.coffee').Enum
 			Enum.create { A : { ordinal : 0 }, B : { ordinal : 0 }, C : {} }
 		'The minimum ordinal is one (1)' : (topic) ->
 			assert.isTrue topic.A.ordinal() == 1
@@ -155,7 +155,7 @@ vows.describe('enumjs Tests').addBatch({
 
 	'When an enum is create()d properly mixing object notation and integers':
 		topic: () ->
-			Enum = require('../lib/enumjs.js').Enum
+			Enum = require('../lib/enum.coffee').Enum
 			Enum.create { A : { ordinal : 0 }, B : 2, C : { ordinal : 0 } }
 		'The minimum ordinal is one (1)' : (topic) ->
 			assert.isTrue topic.A.ordinal() == 1
@@ -166,7 +166,7 @@ vows.describe('enumjs Tests').addBatch({
 
 	'When an enum is create()d properly with custom ordinals':
 		topic: () ->
-			Enum = require('../lib/enumjs.js').Enum
+			Enum = require('../lib/enum.coffee').Enum
 			Enum.create { A : 100, B : { ordinal : 49 }, C : 0 }
 		'The minimum ordinal is 49' : (topic) ->
 			assert.isTrue topic.B.ordinal() == 49
@@ -178,7 +178,7 @@ vows.describe('enumjs Tests').addBatch({
 
 	'Custom constructor':
 		topic: () ->
-			Enum = require('../lib/enumjs.js').Enum
+			Enum = require('../lib/enum.coffee').Enum
 			Enum.create({ 
 				ctor: (inverse) ->
 					try
