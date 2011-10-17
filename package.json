@@ -2,12 +2,11 @@
   "name"          : "enumjs",
   "description"   : "an enum class for node",
   "url"           : "http://github.com/axnsoftware/enumjs",
-  "keywords"      : ["enum"],
+  "keywords"      : ["enumjs"],
   "author"        : "Carsten Klein <carsten.klein@axn-software.de>",
   "contributors"  : [],
   "licenses"      : [ { "type" : "Apache License 2.0", "url" : "http://www.apache.org/licenses/LICENSE-2.0" } ],
   "dependencies"  : {},
-  "main"          : "./lib/enumjs.js",
   "version"       : "1.0.5",
   "directories"   : { "lib": "./lib", "test": "./test" },
   "engines"       : { "node": "> 0.5.0" }
