@@ -22,15 +22,13 @@
 class Enum
 	# Default constructor. Prevents instantiation of the class.
 	constructor: () ->
-		throw new TypeError("enums cannot be instantiated and must not be inherited from.")
+		throw new TypeError "enums cannot be instantiated and must not be inherited from."
 
 	# Same as ordinal().
 	#
 	# @return the integer ordinal
 	valueOf: () ->
 		return @ordinal
-
-exports.Enum = Enum
 
 
 # The factory used for creating new enum classes.
@@ -39,7 +37,7 @@ Enum.create = (decl) ->
 	oargs = arguments
 	declare = ->
 		if decl is null or oargs.length == 0 or typeof decl == 'array' or typeof decl isnt 'object'
-			throw new TypeError("Illegal argument.") 
+			throw new TypeError "Illegal argument."
 
 		dict = {}
 		values = []
@@ -54,6 +52,7 @@ Enum.create = (decl) ->
 		# we must delete the create method
 		delete clazz.create
 
+		# FIXME not really required
 		# make it node compatible
 		clazz.super_ = Enum
 
@@ -66,7 +65,7 @@ Enum.create = (decl) ->
 				return value
 			if value of dict
 				return dict[value]
-			throw new TypeError("'#{value}' is not a constant of this.")
+			throw new TypeError "'#{value}' is not a constant of this."
 
 		# Returns the enum constants.
 		#
@@ -114,7 +113,7 @@ Enum.create = (decl) ->
 			key = key.trim()
 
 			if key.match(rule) is null
-				throw new TypeError("Constant literal must match production '#{rule}'.")
+				throw new TypeError "Constant literal must match production '#{rule}'."
 
 			ctorArgs = []
 			newOrd = -1
@@ -129,10 +128,10 @@ Enum.create = (decl) ->
 			if specType is 'number'
 				newOrd = spec
 			else
-				throw new TypeError("Ordinal must be a number. (literal='#{key}', type='#{specType}', value='#{spec}'")
+				throw new TypeError "Ordinal must be a number. (literal='#{key}', type='#{specType}', value='#{spec}'"
 			ord = newOrd if newOrd > 0
 			if ord of dict
-				throw new TypeError("Duplicate ordinals. (ordinal='#{ord}', literal='#{dict[ord].name()}', duplicate='#{key}'.)")
+				throw new TypeError "Duplicate ordinals. (ordinal='#{ord}', literal='#{dict[ord].name()}', duplicate='#{key}'.)"
 
 			instance = new clazz key, ord
 			instance.self = clazz
@@ -143,7 +142,7 @@ Enum.create = (decl) ->
 			ord += 1
 
 		if values.length == 0
-			throw new TypeError("Enums require at least one literal constant.");
+			throw new TypeError "Enums require at least one literal constant."
 
 		# bind custom ctor if avail
 		if ctor?
@@ -159,4 +158,9 @@ Enum.create = (decl) ->
 		clazz
 		
 	declare()
+
+#
+# module exports
+#
+exports.Enum = Enum
 

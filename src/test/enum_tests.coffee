@@ -17,7 +17,7 @@
 vows = require 'vows'
 assert = require 'assert'
 
-vows.describe('enumjs Tests').addBatch({
+vows.describe('Enum Tests').addBatch({
 
 	'When require()d':
 		topic: () -> 
