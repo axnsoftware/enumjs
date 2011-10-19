@@ -48,9 +48,12 @@ vows.describe('Stack Tests').addBatch({
 		'stackSize must be enumerable': (topic) ->
 			for key of new topic.Stack
 				assert.strictEqual(key, 'stackSize') if key == 'stackSize'
-		'_elements must not be enumerable': (topic) ->
+		'empty must be enumerable': (topic) ->
 			for key of new topic.Stack
-				assert.notStrictEqual key, '_elements'
+				assert.strictEqual(key, 'empty') if key == 'empty'
+		'private must not be enumerable': (topic) ->
+			for key of new topic.Stack
+				assert.notStrictEqual key, 'private'
 		'initial length must be zero': (topic) ->
 			assert.strictEqual new topic.Stack().length, 0
 		'default stackSize must be positive infinity': (topic) ->
@@ -126,6 +129,21 @@ vows.describe('Stack Tests').addBatch({
 			assert.strictEqual s.peek(1), 1
 			assert.strictEqual s.peek(0), 2
 			assert.strictEqual s.peek(), 2
+		'clearing an empty stack must not result in an error': (topic) ->
+			s = new topic.Stack
+			assert.doesNotThrow (-> s.clear()), Error
+		'clearing a non empty stack must result in an empty stack': (topic) ->
+			s = new topic.Stack
+			s.push 1
+			s.clear()
+			assert.strictEqual s.length, 0
+		'empty property must be true if the stack is empty': (topic) ->
+			s = new topic.Stack
+			assert.isTrue s.empty
+		'empty must be false if the stack is not empty': (topic) ->
+			s = new topic.Stack
+			s.push 1
+			assert.isFalse s.empty
 
 }).export(module)
 

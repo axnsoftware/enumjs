@@ -15,11 +15,21 @@
 ###
 
 
-
+# The exception StackOverflowError will be thrown whenever a limited size
+# stack exceeds its maximum storage capacity.
 class StackOverflowError extends Error
 
 
+# The exception StackUnderflowError will be thrown whenever pop() was
+# called while the stack was empty.
 class StackUnderflowError extends Error
+
+
+# This is the holder for our private data.
+class StackPrivate
+
+	constructor: (@stackSize, @elements=[]) ->
+
 
 
 # The class Stack models a LIFO list of elements.
@@ -27,31 +37,44 @@ class Stack
 
 	constructor: (stackSize = Number.POSITIVE_INFINITY) ->
 		throw new RangeError("0 < stackSize:#{stackSize} <= #{Number.POSITIVE_INFINITY}") if stackSize <= 0
-		Object.defineProperty @, '_elements', { value: [], writable: false, enumerable: false }
-		Object.defineProperty @, 'stackSize', { value: stackSize, writable: false, enumerable: true }
+		Object.defineProperty @, 'private', { value: new StackPrivate(stackSize), writable: false, enumerable: false }
 		self = @
+		Object.defineProperty @, 'stackSize', { 
+			get: -> 
+				self.private.stackSize
+			enumerable: true
+		}
 		Object.defineProperty @, 'length', { 
 			get: -> 
-				self._elements.length
+				self.private.elements.length
+			enumerable: true
+		}
+		Object.defineProperty @, 'empty', { 
+			get: -> 
+				self.length == 0
 			enumerable: true
 		}
 
+	clear: ->
+		@private.elements = []
+		@
+
 	peek: (offset = 0) ->
 		throw new RangeError("0 <= offset:#{offset} < #{@length}") if 0 > offset or offset >= @length
-		@_elements[offset]
+		@private.elements[offset]
 
 	poke: (value, offset = 0) ->
 		throw new RangeError("0 <= offset:#{offset} < #{@length}") if 0 > offset or offset >= @length
-		@_elements[offset] = value
+		@private.elements[offset] = value
 		@
 
 	pop: ->
 		throw new StackUnderflowError if @length == 0
-		@_elements.pop()
+		@private.elements.pop()
 
 	push: (value) ->
 		throw new StackOverflowError if (@length) == @stackSize
-		@_elements.push value
+		@private.elements.push value
 		@
 
 

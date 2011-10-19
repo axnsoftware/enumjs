@@ -15,4 +15,4 @@
 	url = git@github.com:axnsoftware/enumjs.wiki.git
 [submodule "node_modules/docco"]
 	path = node_modules/docco
-	url = ssh://git@github.com:axnsoftware/docco.git
+	url = ssh://git@github.com/axnsoftware/docco.git
