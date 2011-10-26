@@ -9,7 +9,7 @@ gen_file_list() {
 	LOCATION=$1
 	TYPE=$2
 
-	find "$LOCATION" -type $TYPE | grep -v "/[.]" | tr '\n' ':' | sed -r "s/^/ \\\\\\n\t/" | sed -r "s/:$/\n/" | sed -r "s/:/ \\\\\n\t/g"
+	find "$LOCATION" -type $TYPE | grep -v ".*package.coffee$" | grep -v "/[.]" | tr '\n' ':' | sed -r "s/^/ \\\\\\n\t/" | sed -r "s/:$/\n/" | sed -r "s/:/ \\\\\n\t/g"
 }
 
 gen_source_in() {

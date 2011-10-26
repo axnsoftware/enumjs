@@ -1,18 +1,18 @@
-[submodule "node_modules/vows"]
-	path = node_modules/vows
+[submodule "externals/vows"]
+	path = externals/vows
 	url = git://github.com/cloudhead/vows.git
-[submodule "node_modules/eyes"]
-	path = node_modules/eyes
+[submodule "externals/eyes"]
+	path = externals/eyes
 	url = git://github.com/cloudhead/eyes.js.git
-[submodule "node_modules/coffee-script"]
-	path = node_modules/coffee-script
+[submodule "externals/coffee-script"]
+	path = externals/coffee-script
 	url = git://github.com/jashkenas/coffee-script.git
-[submodule "node_modules/node-jscoverage"]
-	path = node_modules/node-jscoverage
+[submodule "externals/node-jscoverage"]
+	path = externals/node-jscoverage
 	url = git://github.com/visionmedia/node-jscoverage.git
 [submodule "wiki"]
 	path = wiki
 	url = git@github.com:axnsoftware/enumjs.wiki.git
-[submodule "node_modules/docco"]
-	path = node_modules/docco
+[submodule "externals/docco"]
+	path = externals/docco
 	url = ssh://git@github.com/axnsoftware/docco.git

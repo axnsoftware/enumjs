@@ -16,7 +16,7 @@
 
 PROJECT = enumjs
 
-INSTALL_ROOT = /usr/local/share/node_modules
+INSTALL_ROOT = /usr/local/share/externals
 
 include Makefile.decl.in
 
@@ -35,12 +35,12 @@ JSTEST = $(SRCTEST:$(SOURCEDIR)%.coffee=$(BUILDDIR)/js%.js)
 JSCOVTEST = $(JSTEST:$(BUILDDIR)/js%=$(BUILDDIR)/jscov%)
 
 GIT_BIN = `which git`
-EYES_LIB = ./node_modules/eyes/lib/eyes.js
-VOWS_BIN = ./node_modules/vows/bin/vows
-COFFEE_BIN = ./node_modules/coffee-script/bin/coffee
+EYES_LIB = ./externals/eyes/lib/eyes.js
+VOWS_BIN = ./externals/vows/bin/vows
+COFFEE_BIN = ./externals/coffee-script/bin/coffee
 NODE_BIN = `which node`
 NODE_VER = `$$(which node) --version`
-JSCOVERAGE_BIN = ./node_modules/node-jscoverage/jscoverage
+JSCOVERAGE_BIN = ./externals/node-jscoverage/jscoverage
 
 
 .PHONY: prerequisites compile-pre compile test-pre test test-post install uninstall clean clean-modules help debug $(JSCOVTEST)
@@ -49,9 +49,9 @@ help:
 	@echo "Configure first: ./configure"
 	@echo "Existing make targets:"
 	@echo "all -- everything"
-	@echo "clean -- clean the built except the node_modules, after that ./configure needs to be run again"
+	@echo "clean -- clean the built except the externals, after that ./configure needs to be run again"
 	@echo "clean-test -- cleans the test build"
-	@echo "clean-modules -- cleans the node_modules"
+	@echo "clean-modules -- cleans the externals"
 	@echo "compile -- compiles the sources and the tests"
 	@echo "test -- runs the unit tests"
 	@echo "install -- installs the software, may require root priviledge"
@@ -94,10 +94,10 @@ clean-test:
 	@-rm -Rf build/jscov
 
 clean-modules: 
-	@-rm -rf node_modules/eyes
-	@-rm -rf node_modules/vows
-	@-rm -rf node_modules/node-jscoverage
-	@-rm -rf node_modules/coffee-script
+	@-rm -rf externals/eyes
+	@-rm -rf externals/vows
+	@-rm -rf externals/node-jscoverage
+	@-rm -rf externals/coffee-script
 
 
 #
@@ -150,27 +150,27 @@ prerequisites:
 	@echo -n "-> checking console.dir()..." \
 		&& ( $(NODE_BIN) >/dev/null -e "var t = function() {}; t.f = function() { throw new Error(); }; console.dir(t);" && echo "OK." ) \
 		|| ( echo; echo "-> ERR console.dir() is broken. Use node version 0.5.x or greater. (Version: ${NODE_VER}.)"; exit 1 );
-	@echo "-> initializing submodules in ./node_modules" \
+	@echo "-> initializing submodules in ./externals" \
 		&& $(GIT_BIN) submodule init \
 		|| ( echo "-> ERR unable to initialize submodules."; exit 1 );
-	@echo "-> updating submodules in ./node_modules" \
+	@echo "-> updating submodules in ./externals" \
 		&& $(GIT_BIN) submodule update \
 		|| ( echo "-> ERR unable to update submodules."; exit 1 );
-	@echo "-> synchronizing submodules in ./node_modules" \
+	@echo "-> synchronizing submodules in ./externals" \
 		&& $(GIT_BIN) submodule sync \
 		|| ( echo "-> ERR unable to synchronize submodules."; exit 1 );
-	@echo -n "-> checking availability of ./node_modules/vows..." \
+	@echo -n "-> checking availability of ./externals/vows..." \
 		&& ( test -f $(VOWS_BIN) && echo "FOUND." ) \
-		|| ( echo; echo "-> ERR ./node_modules/vows is not available."; exit 1);
+		|| ( echo; echo "-> ERR ./externals/vows is not available."; exit 1);
 	@echo -n "-> checking whether $(VOWS_BIN) is executable..." \
 		&& ( test -x $(VOWS_BIN) && echo "OK." ) \
 		|| ( echo; echo "-> ERR $(VOWS_BIN) is not executable."; exit 1);
-	@echo -n "-> checking availability of ./node_modules/eyes..." \
+	@echo -n "-> checking availability of ./externals/eyes..." \
 		&& ( test -f $(EYES_LIB) && echo "FOUND." ) \
-		|| ( echo; echo "-> ERR ./node_modules/eyes is not available."; exit 1);
+		|| ( echo; echo "-> ERR ./externals/eyes is not available."; exit 1);
 
 $(JSCOVERAGE_BIN):
-	cd node_modules/node-jscoverage \
+	cd externals/node-jscoverage \
 		&& ./configure \
 		&& make
 
